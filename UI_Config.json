@@ -1,0 +1,63 @@
+﻿{
+    "Command": {
+        "group": "Core", 
+        "label": "Command", 
+        "tooltip": "Command that triggers the TTS via whisper", 
+        "type": "textbox", 
+        "value": "!tts"
+    }, 
+    "Cooldown": {
+        "group": "Core", 
+        "label": "Cooldown (seconds)", 
+        "max": 100, 
+        "min": 0, 
+        "ticks": 5, 
+        "tooltip": "How long the command should go on cooldown for", 
+        "type": "slider", 
+        "value": 0
+    }, 
+    "Info": {
+        "group": "Core", 
+        "label": "Info", 
+        "tooltip": "This field should only be filled when using the user_specific permission.", 
+        "type": "textbox", 
+        "value": ""
+    }, 
+    "Permission": {
+        "group": "Core", 
+        "items": [
+            "everyone", 
+            "moderator", 
+            "subscriber", 
+            "user_specific", 
+            "editor"
+        ], 
+        "label": "Permission", 
+        "tooltip": "Who is able to use the command", 
+        "type": "dropdown", 
+        "value": "editor"
+    }, 
+    "Voice": {
+        "group": "Core", 
+        "items": [
+            "Microsoft Zira Desktop", 
+            "Microsoft David Desktop", 
+            "Microsoft Hedda Desktop"
+        ], 
+        "label": "Voice", 
+        "tooltip": "Select the TTS voice", 
+        "type": "dropdown", 
+        "value": "Microsoft David Desktop"
+    }, 
+    "Volume": {
+        "group": "Core", 
+        "label": "Volume (%)", 
+        "max": 100, 
+        "min": 1, 
+        "ticks": 1, 
+        "tooltip": "Volume of the TTS module", 
+        "type": "slider", 
+        "value": 100
+    }, 
+    "output_file": "Settings/settings.json"
+}
