@@ -1,1 +1,0 @@
-﻿var settings = {"Permission": "editor", "Cooldown": 0, "Volume": 100, "Voice": "Microsoft David Desktop", "Command": "!tts", "Info": ""};
