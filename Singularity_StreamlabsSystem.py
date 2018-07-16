@@ -23,7 +23,7 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.0.0.0"
+Version = "1.0.1.0"
 
 #---------------------------
 #   Define Global Variables
@@ -78,6 +78,7 @@ def Init():
     ui['Cooldown']['value'] = ScriptSettings.Cooldown
     ui['Permission']['value'] = ScriptSettings.Permission
     ui['Info']['value'] = ScriptSettings.Info
+    ui['UseSpeech2Go']['value'] = ScriptSettings.UseSpeech2Go
 
     try:
         with codecs.open(UiFilePath, encoding="utf-8-sig", mode="w+") as f:
@@ -95,7 +96,14 @@ def Execute(data):
     if data.IsWhisper() and data.IsFromTwitch() and data.GetParam(0).lower() == ScriptSettings.Command and not Parent.IsOnCooldown(ScriptName, ScriptSettings.Command) and Parent.HasPermission(data.User, ScriptSettings.Permission, ScriptSettings.Info):
         #   remove command from message
         text = data.Message[len(ScriptSettings.Command):].strip()
-        speak.Speak(text) # do the thing
+        if ScriptSettings.UseSpeech2Go:
+            if os.path.exists("C:/Program Files (x86)/Speech2Go/"):
+                os.system('"C:/Program Files (x86)/Speech2Go/Speech2Go.exe" -t "' + text + '"')
+            else:
+                Parent.Log(ScriptName, "Can not find Speech2Go at default path")
+        else:
+            speak.Speak(text) # do the thing
+            
         Parent.AddCooldown(ScriptName, ScriptSettings.Command, ScriptSettings.Cooldown)  # Put the command on cooldown
 
     return
@@ -121,6 +129,7 @@ def ReloadSettings(jsonData):
     ScriptSettings.Save(SettingsFile)
     # Don't forget to set the values to the things
     speak.Volume = ScriptSettings.Volume
+    speak.Rate = ScriptSettings.VoiceRate
     speak.SelectVoice(ScriptSettings.Voice)
     return
 
