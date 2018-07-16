@@ -14,7 +14,7 @@
         "ticks": 5, 
         "tooltip": "How long the command should go on cooldown for", 
         "type": "slider", 
-        "value": 0
+        "value": 0.0
     }, 
     "Info": {
         "group": "Core", 
@@ -37,6 +37,13 @@
         "type": "dropdown", 
         "value": "editor"
     }, 
+    "UseSpeech2Go": {
+        "group": "Core", 
+        "label": "Use Speech2Go for TTS", 
+        "tooltip": "Check to use Speech2Go for TTS. Edit voice and volume settings in Speech2Go!", 
+        "type": "checkbox", 
+        "value": false
+    }, 
     "Voice": {
         "group": "Core", 
         "items": [
@@ -48,6 +55,16 @@
         "tooltip": "Select the TTS voice", 
         "type": "dropdown", 
         "value": "Microsoft David Desktop"
+    }, 
+    "VoiceRate": {
+        "group": "Core", 
+        "label": "Rate [-10,10]", 
+        "max": 10, 
+        "min": -10, 
+        "ticks": 1, 
+        "tooltip": "Rate of the TTS module", 
+        "type": "slider", 
+        "value": 0
     }, 
     "Volume": {
         "group": "Core", 
