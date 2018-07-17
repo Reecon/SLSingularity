@@ -25,7 +25,7 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.0.0"
+Version = "1.2.0.1"
 
 #---------------------------
 #   Define Global Variables
@@ -63,11 +63,12 @@ def Init():
     global ScriptSettings
     ScriptSettings = MySettings(SettingsFile)
 
+    # querry installed voices and update ui file
+    UpdateUI()
+
     speak.Volume = ScriptSettings.Volume
     speak.SelectVoice(ScriptSettings.Voice)
 
-    # querry installed voices and update ui file
-    UpdateUI()
 
     LoadMessageLog()
 
@@ -129,6 +130,7 @@ def ReloadSettings(jsonData):
     ScriptSettings.__dict__ = json.loads(jsonData)
     ScriptSettings.Save(SettingsFile)
     # Don't forget to set the values to the things
+    UpdateUI()
     speak.Volume = ScriptSettings.Volume
     speak.Rate = ScriptSettings.VoiceRate
     speak.SelectVoice(ScriptSettings.Voice)
