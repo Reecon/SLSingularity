@@ -1,0 +1,99 @@
+<html>
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+<script src="API_Key.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<head>
+</head>
+<body>
+  <div id="app">
+    <table class="table" style="width:100%;">
+      <tr v-for="(m, i) in messages">
+        <td style="text-align:left; width:30px;">{{ m.user }}</td>
+        <td style="text-align:left;">{{ m.message }}</td>
+      </tr>
+    </table>
+    
+  </div>
+</body>
+
+
+<script>
+  var vm = new Vue({
+    el: '#app',
+    data: {
+      messages: [],
+      title: "TTS Log",
+      my_event: "",
+      serviceUrl: "",
+      socket: Object
+    },
+    updated: function() {
+      window.scrollTo(0,document.body.scrollHeight);
+    },
+    mounted: function () {
+      //---------------------------------
+      //  Variables
+      //---------------------------------
+      this.serviceUrl = API_Socket;
+      this.socket = new WebSocket(this.serviceUrl);
+      
+      this.$nextTick(() => {
+        document.title = vm.title;
+      });
+      //---------------------------------
+      //  Open Event
+      //---------------------------------
+      this.socket.onopen = function () {
+        // Format your Authentication Information
+        var auth = {
+          author: 'Reecon820',
+          website: 'reecon820@gmail.com',
+          api_key: API_Key,
+          events: ['EVENT_TTS_MESSAGE', 'EVENT_TTS_LOG']
+        };
+
+        //  Send your Data to the server
+        vm.socket.send(JSON.stringify(auth));
+      };
+
+      //---------------------------------
+      //  Error Event
+      //---------------------------------
+      this.socket.onerror = function (error) {
+        //  Something went terribly wrong... Respond?!
+        console.log('Error: ' + error);
+      };
+
+      //---------------------------------
+      //  Message Event
+      //---------------------------------
+      this.socket.onmessage = function (message) {
+        var json = JSON.parse(message.data);
+
+        if (json.event == 'EVENT_TTS_MESSAGE') {
+          var data = JSON.parse(json.data);
+          vm.messages.push(data);
+        }
+        
+        if (json.event == 'EVENT_TTS_LOG') {
+          var data = JSON.parse(json.data);
+          for (message of data) {
+            vm.messages.push(message);
+          }
+        }
+      };
+      
+      //---------------------------------
+      //  Message Event
+      //---------------------------------
+      this.socket.onclose = function () {
+        //  Connection has been closed by you or the server
+        console.log("Connection Closed!");
+      };
+    }
+  });
+</script>
+
+</html>
