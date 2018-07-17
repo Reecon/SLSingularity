@@ -46,15 +46,11 @@
     }, 
     "Voice": {
         "group": "Core", 
-        "items": [
-            "Microsoft Zira Desktop", 
-            "Microsoft David Desktop", 
-            "Microsoft Hedda Desktop"
-        ], 
+        "items": [], 
         "label": "Voice", 
         "tooltip": "Select the TTS voice", 
         "type": "dropdown", 
-        "value": "Microsoft David Desktop"
+        "value": ""
     }, 
     "VoiceRate": {
         "group": "Core", 
@@ -75,6 +71,14 @@
         "tooltip": "Volume of the TTS module", 
         "type": "slider", 
         "value": 100
+    }, 
+    "btnOpenLog": {
+        "function": "OpenMessageLog", 
+        "group": "Core", 
+        "label": "Open Message Log", 
+        "tooltip": "Opens HTML message log for TTS messages", 
+        "type": "button", 
+        "wsevent": "EVENT_NONE"
     }, 
     "output_file": "Settings/settings.json"
 }

@@ -14,6 +14,8 @@ class MySettings(object):
 			self.Info = ""
 			self.Volume = 50
 			self.Voice = "Microsoft David Desktop"
+			self.UseSpeech2Go = False
+			self.VoiceRate = 0
 
 	def Reload(self, jsondata):
 		self.__dict__ = json.loads(jsondata, encoding="utf-8")
