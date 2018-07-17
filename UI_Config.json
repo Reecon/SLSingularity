@@ -46,11 +46,14 @@
     }, 
     "Voice": {
         "group": "Core", 
-        "items": [], 
+        "items": [
+            "Microsoft Zira Desktop", 
+            "Microsoft David Desktop"
+        ], 
         "label": "Voice", 
         "tooltip": "Select the TTS voice", 
         "type": "dropdown", 
-        "value": ""
+        "value": "Microsoft David Desktop"
     }, 
     "VoiceRate": {
         "group": "Core", 
@@ -70,7 +73,7 @@
         "ticks": 1, 
         "tooltip": "Volume of the TTS module", 
         "type": "slider", 
-        "value": 100
+        "value": 100.0
     }, 
     "btnOpenLog": {
         "function": "OpenMessageLog", 
