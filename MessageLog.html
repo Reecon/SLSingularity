@@ -38,6 +38,10 @@
       //---------------------------------
       this.serviceUrl = API_Socket;
       this.socket = new WebSocket(this.serviceUrl);
+
+      if (localStorage.getItem('log')) {
+        this.messages = JSON.parse(localStorage.getItem('log'));
+      }
       
       this.$nextTick(() => {
         document.title = vm.title;
@@ -75,13 +79,8 @@
         if (json.event == 'EVENT_TTS_MESSAGE') {
           var data = JSON.parse(json.data);
           vm.messages.push(data);
-        }
-        
-        if (json.event == 'EVENT_TTS_LOG') {
-          var data = JSON.parse(json.data);
-          for (message of data) {
-            vm.messages.push(message);
-          }
+
+          localStorage.setItem('log', JSON.stringify(vm.messages.slice(-5)));
         }
       };
       

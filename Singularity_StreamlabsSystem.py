@@ -25,7 +25,7 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.0.1"
+Version = "1.2.1.0"
 
 #---------------------------
 #   Define Global Variables
@@ -36,9 +36,6 @@ global ScriptSettings
 ScriptSettings = MySettings()
 global speak
 speak = SpeechSynthesizer()
-
-global MessageLog
-MessageLog = []
 
 global LogHtmlPath
 LogHtmlPath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLog.html"))
@@ -69,9 +66,6 @@ def Init():
     speak.Volume = ScriptSettings.Volume
     speak.SelectVoice(ScriptSettings.Voice)
 
-
-    LoadMessageLog()
-
     return
 
 #---------------------------
@@ -84,6 +78,12 @@ def Execute(data):
         # remove command from message
         cleanMessage = data.Message.split(' ', 1)[1]
 
+        # send line to html
+        time = "{}".format(datetime.datetime.now())
+        jsonData = '{{"date": "{0}", "user": "{1}", "message": "{2}" }}'.format(time, data.User, cleanMessage)
+        
+        Parent.BroadcastWsEvent("EVENT_TTS_MESSAGE", jsonData)
+
         if ScriptSettings.UseSpeech2Go:
             if os.path.exists("C:/Program Files (x86)/Speech2Go/"):
                 os.system('"C:/Program Files (x86)/Speech2Go/Speech2Go.exe" -t "' + cleanMessage + '"')
@@ -92,6 +92,7 @@ def Execute(data):
         else:
             speak.Speak(cleanMessage) # do the thing
 
+        # save line to log file
         try:
             with codecs.open(LogFilePath, encoding='utf-8', mode='a+') as f:
                 line = "{0} -- {1}: {2}".format(datetime.datetime.now(), data.User, cleanMessage)
@@ -99,12 +100,6 @@ def Execute(data):
         except Exception as err:
             Parent.Log(ScriptName, "{}".format(err))
 
-        time = "{}".format(datetime.datetime.now())
-        jsonData = '{{"date": "{0}", "user": "{1}", "message": "{2}" }}'.format(time, data.User, cleanMessage)
-        
-        Parent.BroadcastWsEvent("EVENT_TTS_MESSAGE", jsonData)
-
-        MessageLog.append({"date": time, "user": data.User, "message": cleanMessage})
 
         Parent.AddCooldown(ScriptName, ScriptSettings.Command, ScriptSettings.Cooldown)  # Put the command on cooldown
 
@@ -150,15 +145,6 @@ def ScriptToggled(state):
 
 def OpenMessageLog():
     os.startfile(LogHtmlPath)
-    time.sleep(1)
-
-    # show last 5 messages on load
-    history = MessageLog[-5:]
-
-    
-    jsonData = json.dumps(history)
-    Parent.BroadcastWsEvent("EVENT_TTS_LOG", jsonData)
-    
     return
 
 def UpdateUI():
@@ -194,21 +180,3 @@ def UpdateUI():
         Parent.Log(ScriptName, "{0}".format(err))
 
     return
-
-def LoadMessageLog():
-    try:
-        with codecs.open(LogFilePath, encoding='utf-8', mode='r') as f:
-            global MessageLog
-            MessageLog = []
-            for line in f:
-                line = line.strip()
-                # {time stamp} -- {username}: {message}
-                tokens = line.split(' ')
-                time = tokens[0:1]
-                user = tokens[3][:-1]
-                message = " ".join(tokens[4:])
-
-                MessageLog.append({"date": time, "user": user, "message": message})
-            
-    except Exception as err:
-        Parent.Log(ScriptName, "Could not read TTS log file! {0}".format(err))
