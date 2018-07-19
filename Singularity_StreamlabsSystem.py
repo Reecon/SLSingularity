@@ -25,7 +25,7 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.0.1"
+Version = "1.2.1.0"
 
 #---------------------------
 #   Define Global Variables
