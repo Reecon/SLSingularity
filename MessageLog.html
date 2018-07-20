@@ -82,6 +82,16 @@
 
           localStorage.setItem('log', JSON.stringify(vm.messages.slice(-5)));
         }
+        
+        if (json.event == 'EVENT_TTS_LOG') {
+          var data = JSON.parse(json.data);
+          
+          vm.messages = [];
+          for (m of data) {
+            vm.messages.push(m);
+          }
+          localStorage.setItem('log', JSON.stringify(vm.messages.slice(-5)));
+        }
       };
       
       //---------------------------------

@@ -25,7 +25,7 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.1.0"
+Version = "1.2.2.0"
 
 #---------------------------
 #   Define Global Variables
@@ -42,6 +42,9 @@ LogHtmlPath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLo
 
 global LogFilePath
 LogFilePath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLog.txt"))
+
+global MessageLog
+MessageLog = []
 
 #---------------------------
 #   [Required] Initialize Data (Only called on load)
@@ -62,6 +65,8 @@ def Init():
 
     # querry installed voices and update ui file
     UpdateUI()
+
+    LoadMessageLog()
 
     speak.Volume = ScriptSettings.Volume
     speak.SelectVoice(ScriptSettings.Voice)
@@ -98,8 +103,7 @@ def Execute(data):
                 line = "{0} -- {1}: {2}".format(datetime.datetime.now(), data.User, cleanMessage)
                 f.write(line + "\n")
         except Exception as err:
-            Parent.Log(ScriptName, "{}".format(err))
-
+            Parent.Log(ScriptName, "Error saving log file: {}".format(err))
 
         Parent.AddCooldown(ScriptName, ScriptSettings.Command, ScriptSettings.Cooldown)  # Put the command on cooldown
 
@@ -145,6 +149,11 @@ def ScriptToggled(state):
 
 def OpenMessageLog():
     os.startfile(LogHtmlPath)
+    time.sleep(1) # give ws time to connect
+
+    # send last 5 log messages to html
+    jsonData = json.dumps(MessageLog[-5:])
+    Parent.BroadcastWsEvent("EVENT_TTS_LOG", jsonData)
     return
 
 def UpdateUI():
@@ -158,7 +167,7 @@ def UpdateUI():
         with codecs.open(UiFilePath, encoding="utf-8-sig", mode="r") as f:
             ui = json.load(f, encoding="utf-8")
     except Exception as err:
-        Parent.Log(ScriptName, "{0}".format(err))
+        Parent.Log(ScriptName, "Error loading UI file: {0}".format(err))
 
     if not ui['Voice']['value']:
         ui['Voice']['value'] = names[0]
@@ -177,6 +186,22 @@ def UpdateUI():
         with codecs.open(UiFilePath, encoding="utf-8-sig", mode="w+") as f:
             json.dump(ui, f, encoding="utf-8", indent=4, sort_keys=True)
     except Exception as err:
-        Parent.Log(ScriptName, "{0}".format(err))
+        Parent.Log(ScriptName, "Error saving UI file: {0}".format(err))
 
+    return
+
+def LoadMessageLog():
+    # save line to log file
+    try:
+        with codecs.open(LogFilePath, encoding='utf-8', mode='r') as f:
+            for line in f:
+                # 2018-07-20 16:21:45.674000 -- reecon820: test message
+                tokens = line.split(" ")
+                date = " ".join(tokens[:2])
+                user = tokens[3][:-1] # remove :
+                message = " ".join(tokens[4:]).strip()
+
+                MessageLog.append({'date': date, 'user': user, 'message': message})
+    except Exception as err:
+        Parent.Log(ScriptName, "Error loading log file: {}".format(err))
     return
