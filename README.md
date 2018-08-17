@@ -1,4 +1,4 @@
-Allows people to whisper the bot for text to speach.
+Allows people to whisper the bot for text to speech.
 
 Uses the Microsoft speech engine built in with Windows 10 as the default and you can select any installed voice.
 
