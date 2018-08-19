@@ -15,9 +15,6 @@ clr.AddReference("IronPython.Modules.dll")
 clr.AddReference('System.Speech')
 from System.Speech.Synthesis import SpeechSynthesizer
 
-
-#   Import your Settings class
-from Settings_Module import MySettings
 #---------------------------
 #   [Required] Script Information
 #---------------------------
@@ -25,26 +22,56 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.2.0"
+Version = "1.2.3.0"
+
+#---------------------------
+#   Settings Handling
+#---------------------------
+class SSettings:
+	def __init__(self, settingsfile=None):
+		try:
+			with codecs.open(settingsfile, encoding="utf-8-sig", mode="r") as f:
+				self.__dict__ = json.load(f, encoding="utf-8")
+		except:
+			self.Command = "!tts"
+			self.Cooldown = 10
+			self.Permission = "moderator"
+			self.Info = ""
+			self.Volume = 50
+			self.Voice = "Microsoft David Desktop"
+			self.UseSpeech2Go = False
+			self.VoiceRate = 0
+
+	def Reload(self, jsondata):
+		self.__dict__ = json.loads(jsondata, encoding="utf-8")
+
+	def Save(self, settingsfile):
+		try:
+			with codecs.open(settingsfile, encoding="utf-8-sig", mode="w+") as f:
+				json.dump(self.__dict__, f, encoding="utf-8", indent=4)
+			with codecs.open(settingsfile.replace("json", "js"), encoding="utf-8-sig", mode="w+") as f:
+				f.write("var settings = {0};".format(json.dumps(self.__dict__, encoding='utf-8')))
+		except:
+			Parent.Log(ScriptName, "Failed to save settings to file.")
 
 #---------------------------
 #   Define Global Variables
 #---------------------------
-global SettingsFile
-SettingsFile = ""
-global ScriptSettings
-ScriptSettings = MySettings()
-global speak
-speak = SpeechSynthesizer()
+global sSettingsFile
+sSettingsFile = ""
+global sScriptSettings
+sScriptSettings = SSettings()
+global sSpeak
+sSpeak = SpeechSynthesizer()
 
-global LogHtmlPath
-LogHtmlPath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLog.html"))
+global sLogHtmlPath
+sLogHtmlPath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLog.html"))
 
-global LogFilePath
-LogFilePath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLog.txt"))
+global sLogFilePath
+sLogFilePath = os.path.abspath(os.path.join(os.path.dirname(__file__), "MessageLog.txt"))
 
-global MessageLog
-MessageLog = []
+global sMessageLog
+sMessageLog = []
 
 #---------------------------
 #   [Required] Initialize Data (Only called on load)
@@ -57,19 +84,19 @@ def Init():
         os.makedirs(directory)
 
     #   Load settings
-    global SettingsFile
-    SettingsFile = os.path.join(os.path.dirname(__file__), "Settings\settings.json")
+    global sSettingsFile
+    sSettingsFile = os.path.join(os.path.dirname(__file__), "Settings\settings.json")
 
-    global ScriptSettings
-    ScriptSettings = MySettings(SettingsFile)
+    global sScriptSettings
+    sScriptSettings = SSettings(sSettingsFile)
 
     # querry installed voices and update ui file
-    UpdateUI()
+    updateUi()
 
     LoadMessageLog()
 
-    speak.Volume = ScriptSettings.Volume
-    speak.SelectVoice(ScriptSettings.Voice)
+    sSpeak.Volume = sScriptSettings.Volume
+    sSpeak.SelectVoice(sScriptSettings.Voice)
 
     return
 
@@ -78,7 +105,7 @@ def Init():
 #---------------------------
 def Execute(data):
     #   Check if the propper command is used, the command is not on cooldown and the user has permission to use the command
-    if data.IsWhisper() and data.IsFromTwitch() and data.GetParam(0).lower() == ScriptSettings.Command and not Parent.IsOnCooldown(ScriptName, ScriptSettings.Command) and Parent.HasPermission(data.User, ScriptSettings.Permission, ScriptSettings.Info):
+    if data.IsWhisper() and data.IsFromTwitch() and data.GetParam(0).lower() == sScriptSettings.Command and not Parent.IsOnCooldown(ScriptName, sScriptSettings.Command) and Parent.HasPermission(data.User, sScriptSettings.Permission, sScriptSettings.Info):
         
         # remove command from message
         cleanMessage = data.Message.split(' ', 1)[1]
@@ -89,25 +116,23 @@ def Execute(data):
         
         Parent.BroadcastWsEvent("EVENT_TTS_MESSAGE", jsonData)
 
-        if ScriptSettings.UseSpeech2Go:
+        if sScriptSettings.UseSpeech2Go:
             if os.path.exists("C:/Program Files (x86)/Speech2Go/"):
                 os.system('"C:/Program Files (x86)/Speech2Go/Speech2Go.exe" -t "' + cleanMessage + '"')
             else:
                 Parent.Log(ScriptName, "Can not find Speech2Go at default path")
         else:
-            speak.Speak(cleanMessage) # do the thing
+            sSpeak.Speak(cleanMessage) # do the thing
 
         # save line to log file
         try:
-            with codecs.open(LogFilePath, encoding='utf-8', mode='a+') as f:
+            with codecs.open(sLogFilePath, encoding='utf-8', mode='a+') as f:
                 line = "{0} -- {1}: {2}".format(datetime.datetime.now(), data.User, cleanMessage)
                 f.write(line + "\n")
         except Exception as err:
             Parent.Log(ScriptName, "Error saving log file: {}".format(err))
 
-        Parent.AddCooldown(ScriptName, ScriptSettings.Command, ScriptSettings.Cooldown)  # Put the command on cooldown
-
-    return
+        Parent.AddCooldown(ScriptName, sScriptSettings.Command, sScriptSettings.Cooldown)  # Put the command on cooldown
 
 #---------------------------
 #   [Required] Tick method (Gets called during every iteration even when there is no incoming data)
@@ -126,14 +151,13 @@ def Parse(parseString, userid, username, targetid, targetname, message):
 #---------------------------
 def ReloadSettings(jsonData):
     # Execute json reloading here
-    ScriptSettings.__dict__ = json.loads(jsonData)
-    ScriptSettings.Save(SettingsFile)
+    sScriptSettings.__dict__ = json.loads(jsonData)
+    sScriptSettings.Save(sSettingsFile)
     # Don't forget to set the values to the things
-    UpdateUI()
-    speak.Volume = ScriptSettings.Volume
-    speak.Rate = ScriptSettings.VoiceRate
-    speak.SelectVoice(ScriptSettings.Voice)
-    return
+    updateUi()
+    sSpeak.Volume = sScriptSettings.Volume
+    sSpeak.Rate = sScriptSettings.VoiceRate
+    sSpeak.SelectVoice(sScriptSettings.Voice)
 
 #---------------------------
 #   [Optional] Unload (Called when a user reloads their scripts or closes the bot / cleanup stuff)
@@ -148,17 +172,16 @@ def ScriptToggled(state):
     return
 
 def OpenMessageLog():
-    os.startfile(LogHtmlPath)
+    os.startfile(sLogHtmlPath)
     time.sleep(1) # give ws time to connect
 
     # send last 5 log messages to html
-    jsonData = json.dumps(MessageLog[-5:])
+    jsonData = json.dumps(sMessageLog[-5:])
     Parent.BroadcastWsEvent("EVENT_TTS_LOG", jsonData)
-    return
 
-def UpdateUI():
+def updateUi():
     # querry installed voices and update ui file
-    voices = speak.GetInstalledVoices()
+    voices = sSpeak.GetInstalledVoices()
     names = [voice.VoiceInfo.Name for voice in voices]
 
     ui = {}
@@ -172,15 +195,15 @@ def UpdateUI():
     if not ui['Voice']['value']:
         ui['Voice']['value'] = names[0]
 
-    ui['Voice']['value'] = ScriptSettings.Voice
+    ui['Voice']['value'] = sScriptSettings.Voice
     ui['Voice']['items'] = names
     # update ui with loaded settings
-    ui['Volume']['value'] = ScriptSettings.Volume
-    ui['Command']['value'] = ScriptSettings.Command
-    ui['Cooldown']['value'] = ScriptSettings.Cooldown
-    ui['Permission']['value'] = ScriptSettings.Permission
-    ui['Info']['value'] = ScriptSettings.Info
-    ui['UseSpeech2Go']['value'] = ScriptSettings.UseSpeech2Go
+    ui['Volume']['value'] = sScriptSettings.Volume
+    ui['Command']['value'] = sScriptSettings.Command
+    ui['Cooldown']['value'] = sScriptSettings.Cooldown
+    ui['Permission']['value'] = sScriptSettings.Permission
+    ui['Info']['value'] = sScriptSettings.Info
+    ui['UseSpeech2Go']['value'] = sScriptSettings.UseSpeech2Go
 
     try:
         with codecs.open(UiFilePath, encoding="utf-8-sig", mode="w+") as f:
@@ -188,12 +211,11 @@ def UpdateUI():
     except Exception as err:
         Parent.Log(ScriptName, "Error saving UI file: {0}".format(err))
 
-    return
 
 def LoadMessageLog():
     # save line to log file
     try:
-        with codecs.open(LogFilePath, encoding='utf-8', mode='r') as f:
+        with codecs.open(sLogFilePath, encoding='utf-8', mode='r') as f:
             for line in f:
                 # 2018-07-20 16:21:45.674000 -- reecon820: test message
                 tokens = line.split(" ")
@@ -201,7 +223,6 @@ def LoadMessageLog():
                 user = tokens[3][:-1] # remove :
                 message = " ".join(tokens[4:]).strip()
 
-                MessageLog.append({'date': date, 'user': user, 'message': message})
+                sMessageLog.append({'date': date, 'user': user, 'message': message})
     except Exception as err:
         Parent.Log(ScriptName, "Error loading log file: {}".format(err))
-    return
