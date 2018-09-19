@@ -7,6 +7,7 @@ import sys
 import json
 import datetime
 import time
+import re
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib")) #point at lib folder for classes / references
 
 import clr
@@ -22,37 +23,39 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.3.0"
+Version = "1.2.4.0"
 
 #---------------------------
 #   Settings Handling
 #---------------------------
 class SSettings:
-	def __init__(self, settingsfile=None):
-		try:
-			with codecs.open(settingsfile, encoding="utf-8-sig", mode="r") as f:
-				self.__dict__ = json.load(f, encoding="utf-8")
-		except:
-			self.Command = "!tts"
-			self.Cooldown = 10
-			self.Permission = "moderator"
-			self.Info = ""
-			self.Volume = 50
-			self.Voice = "Microsoft David Desktop"
-			self.UseSpeech2Go = False
-			self.VoiceRate = 0
+    def __init__(self, settingsfile=None):
+        try:
+            with codecs.open(settingsfile, encoding="utf-8-sig", mode="r") as f:
+                self.__dict__ = json.load(f, encoding="utf-8")
+        except:
+            self.Command = "!tts"
+            self.Cooldown = 10
+            self.Permission = "moderator"
+            self.Info = ""
+            self.Volume = 50
+            self.Voice = "Microsoft David Desktop"
+            self.UseSpeech2Go = False
+            self.VoiceRate = 0
+            self.ShoutoutPromo = False
+            self.VCQuotes = False
 
-	def Reload(self, jsondata):
-		self.__dict__ = json.loads(jsondata, encoding="utf-8")
+    def Reload(self, jsondata):
+        self.__dict__ = json.loads(jsondata, encoding="utf-8")
 
-	def Save(self, settingsfile):
-		try:
-			with codecs.open(settingsfile, encoding="utf-8-sig", mode="w+") as f:
-				json.dump(self.__dict__, f, encoding="utf-8", indent=4)
-			with codecs.open(settingsfile.replace("json", "js"), encoding="utf-8-sig", mode="w+") as f:
-				f.write("var settings = {0};".format(json.dumps(self.__dict__, encoding='utf-8')))
-		except:
-			Parent.Log(ScriptName, "Failed to save settings to file.")
+    def Save(self, settingsfile):
+        try:
+            with codecs.open(settingsfile, encoding="utf-8-sig", mode="w+") as f:
+                json.dump(self.__dict__, f, encoding="utf-8", indent=4)
+            with codecs.open(settingsfile.replace("json", "js"), encoding="utf-8-sig", mode="w+") as f:
+                f.write("var settings = {0};".format(json.dumps(self.__dict__, encoding='utf-8')))
+        except:
+            Parent.Log(ScriptName, "Failed to save settings to file.")
 
 #---------------------------
 #   Define Global Variables
@@ -110,29 +113,25 @@ def Execute(data):
         # remove command from message
         cleanMessage = data.Message.split(' ', 1)[1]
 
-        # send line to html
-        time = "{}".format(datetime.datetime.now())
-        jsonData = '{{"date": "{0}", "user": "{1}", "message": "{2}" }}'.format(time, data.User, cleanMessage)
-        
-        Parent.BroadcastWsEvent("EVENT_TTS_MESSAGE", jsonData)
-
-        if sScriptSettings.UseSpeech2Go:
-            if os.path.exists("C:/Program Files (x86)/Speech2Go/"):
-                os.system('"C:/Program Files (x86)/Speech2Go/Speech2Go.exe" -t "' + cleanMessage + '"')
-            else:
-                Parent.Log(ScriptName, "Can not find Speech2Go at default path")
-        else:
-            sSpeak.Speak(cleanMessage) # do the thing
-
-        # save line to log file
-        try:
-            with codecs.open(sLogFilePath, encoding='utf-8', mode='a+') as f:
-                line = "{0} -- {1}: {2}".format(datetime.datetime.now(), data.User, cleanMessage)
-                f.write(line + "\n")
-        except Exception as err:
-            Parent.Log(ScriptName, "Error saving log file: {}".format(err))
+        SayAndLog(cleanMessage, data.User)
 
         Parent.AddCooldown(ScriptName, sScriptSettings.Command, sScriptSettings.Cooldown)  # Put the command on cooldown
+
+    elif data.IsFromTwitch() and data.IsRawData() and "USERNOTICE" in data.RawData and sScriptSettings.ShoutoutPromo:
+        #@badges=subscriber/0,premium/1;color=#179B38;display-name=CrazyGirlWithAGun;emotes=;id=5a04b6bd-6835-4b76-91f8-ea9b833bf7d0;login=crazygirlwithagun;mod=0;msg-id=giftpaidupgrade;msg-param-promo-gift-total=220292;msg-param-promo-name=Subtember;msg-param-sender-login=previouslyungrokkable;msg-param-sender-name=previouslyungrokkable;room-id=62983472;subscriber=1;system-msg=CrazyGirlWithAGun\sis\scontinuing\sthe\sGift\sSub\sthey\sgot\sfrom\spreviouslyungrokkable!\sThey're\sone\sof\s220292\sgift\ssubs\sto\scontinue\sthis\sSubtember.;tmi-sent-ts=1537333390444;turbo=0;user-id=94921845;user-type= :tmi.twitch.tv USERNOTICE #kaypikefashion
+        
+        if ("msg-param-promo-name=Subtember;" in data.RawData):
+            giftee = re.search("login=.*;", data.RawData).group(0).strip(";").split("=")[1]
+            gifter = re.search("msg-param-sender-name=.*;", data.RawData).group(0).strip(";").split("=")[1]
+            message = "{0} is continuing the Gift Sub they got from {1}!".format(giftee, gifter)
+            SayAndLog(message, "Bot")
+        
+    elif data.IsFromTwitch() and data.IsChatMessage() and sScriptSettings.VCQuotes and data.GetParam(0).lower() == "!quote" and data.GetParam(1).lower() == "add" and data.User.lower() == "viciouscuddles":
+        
+        # remove command from quote
+        cleanQuote = data.Message.split(' ', 2)[2]
+
+        SayAndLog(cleanQuote, data.User)
 
 #---------------------------
 #   [Required] Tick method (Gets called during every iteration even when there is no incoming data)
@@ -171,6 +170,29 @@ def Unload():
 def ScriptToggled(state):
     return
 
+def SayAndLog(text, user):
+    # send line to html
+    time = "{}".format(datetime.datetime.now())
+    jsonData = '{{"date": "{0}", "user": "{1}", "message": "{2}" }}'.format(time, user, text)
+    
+    Parent.BroadcastWsEvent("EVENT_TTS_MESSAGE", jsonData)
+
+    if sScriptSettings.UseSpeech2Go:
+        if os.path.exists("C:/Program Files (x86)/Speech2Go/"):
+            os.system('"C:/Program Files (x86)/Speech2Go/Speech2Go.exe" -t "' + text + '"')
+        else:
+            Parent.Log(ScriptName, "Can not find Speech2Go at default path")
+    else:
+        sSpeak.Speak(text) # do the thing
+
+    # save line to log file
+    try:
+        with codecs.open(sLogFilePath, encoding='utf-8', mode='a+') as f:
+            line = "{0} -- {1}: {2}".format(datetime.datetime.now(), user, text)
+            f.write(line + "\n")
+    except Exception as err:
+        Parent.Log(ScriptName, "Error saving log file: {}".format(err))
+
 def OpenMessageLog():
     os.startfile(sLogHtmlPath)
     time.sleep(1) # give ws time to connect
@@ -204,6 +226,8 @@ def updateUi():
     ui['Permission']['value'] = sScriptSettings.Permission
     ui['Info']['value'] = sScriptSettings.Info
     ui['UseSpeech2Go']['value'] = sScriptSettings.UseSpeech2Go
+    ui['ShoutoutPromo']['value'] = sScriptSettings.ShoutoutPromo
+    ui['VCQuotes']['value'] = sScriptSettings.VCQuotes
 
     try:
         with codecs.open(UiFilePath, encoding="utf-8-sig", mode="w+") as f:

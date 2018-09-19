@@ -1,4 +1,4 @@
-{
+﻿{
     "Command": {
         "group": "Core", 
         "label": "Command", 
@@ -14,7 +14,7 @@
         "ticks": 5, 
         "tooltip": "How long the command should go on cooldown for", 
         "type": "slider", 
-        "value": 0.0
+        "value": 10.0
     }, 
     "Info": {
         "group": "Core", 
@@ -35,7 +35,14 @@
         "label": "Permission", 
         "tooltip": "Who is able to use the command", 
         "type": "dropdown", 
-        "value": "editor"
+        "value": "moderator"
+    }, 
+    "ShoutoutPromo": {
+        "group": "H4XX", 
+        "label": "Automatically shoutout twitch special promotions", 
+        "tooltip": "Check to automatically shoutout special promotions via TTS", 
+        "type": "checkbox", 
+        "value": false
     }, 
     "UseSpeech2Go": {
         "group": "Core", 
@@ -44,11 +51,19 @@
         "type": "checkbox", 
         "value": false
     }, 
+    "VCQuotes": {
+        "group": "H4XX", 
+        "label": "Auto TTS for VC's quotes", 
+        "tooltip": "Check to automatically read newly added quotes by our all time favorite mod ViciousCuddles", 
+        "type": "checkbox", 
+        "value": true
+    }, 
     "Voice": {
         "group": "Core", 
         "items": [
             "Microsoft Zira Desktop", 
-            "Microsoft David Desktop"
+            "Microsoft David Desktop", 
+            "Microsoft Hedda Desktop"
         ], 
         "label": "Voice", 
         "tooltip": "Select the TTS voice", 
@@ -73,7 +88,7 @@
         "ticks": 1, 
         "tooltip": "Volume of the TTS module", 
         "type": "slider", 
-        "value": 100.0
+        "value": 50.0
     }, 
     "btnOpenLog": {
         "function": "OpenMessageLog", 
