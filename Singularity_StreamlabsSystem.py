@@ -23,7 +23,7 @@ ScriptName = "Singularity"
 Website = "reecon820@gmail.com"
 Description = "Lets people whisper the bot for TTS"
 Creator = "Reecon820"
-Version = "1.2.4.0"
+Version = "1.2.5.0"
 
 #---------------------------
 #   Settings Handling
@@ -173,7 +173,7 @@ def ScriptToggled(state):
 def SayAndLog(text, user):
     # send line to html
     time = "{}".format(datetime.datetime.now())
-    jsonData = '{{"date": "{0}", "user": "{1}", "message": "{2}" }}'.format(time, user, text)
+    jsonData = '{{"date": "{0}", "user": "{1}", "message": "{2}" }}'.format(time, user, text.replace("'", '"').replace('"', '\\"'))
     
     Parent.BroadcastWsEvent("EVENT_TTS_MESSAGE", jsonData)
 
