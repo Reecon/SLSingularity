@@ -14,7 +14,7 @@
         "ticks": 5, 
         "tooltip": "How long the command should go on cooldown for", 
         "type": "slider", 
-        "value": 10.0
+        "value": 5
     }, 
     "Info": {
         "group": "Core", 
@@ -54,7 +54,7 @@
     "VCQuotes": {
         "group": "H4XX", 
         "label": "Auto TTS for VC's quotes", 
-        "tooltip": "Check to automatically read newly added quotes by our all time favorite mod ViciousCuddles", 
+        "tooltip": "Check to automatically read all message ending with the emote :| by our all time favorite mod ViciousCuddles", 
         "type": "checkbox", 
         "value": true
     }, 
@@ -88,7 +88,7 @@
         "ticks": 1, 
         "tooltip": "Volume of the TTS module", 
         "type": "slider", 
-        "value": 50.0
+        "value": 50
     }, 
     "btnOpenLog": {
         "function": "OpenMessageLog", 
