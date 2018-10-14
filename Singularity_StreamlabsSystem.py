@@ -126,12 +126,13 @@ def Execute(data):
             message = "{0} is continuing the Gift Sub they got from {1}!".format(giftee, gifter)
             SayAndLog(message, "Bot")
         
-    elif data.IsFromTwitch() and data.IsChatMessage() and sScriptSettings.VCQuotes and data.GetParam(0).lower() == "!quote" and data.GetParam(1).lower() == "add" and data.User.lower() == "viciouscuddles":
-        
-        # remove command from quote
-        cleanQuote = data.Message.split(' ', 2)[2]
+    elif data.IsFromTwitch() and data.IsChatMessage() and sScriptSettings.VCQuotes and data.Message.split(' ')[-1] == ':|' and data.User.lower() == "viciouscuddles":
 
-        SayAndLog(cleanQuote, data.User)
+        # remove emote
+        cleanMessage = data.Message.split(' ')[:-1]
+        cleanMessage = " ".join(cleanMessage)
+        if len(cleanMessage) > 0:
+            SayAndLog(cleanMessage, data.User)
 
 #---------------------------
 #   [Required] Tick method (Gets called during every iteration even when there is no incoming data)
